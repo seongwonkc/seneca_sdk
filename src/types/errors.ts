@@ -32,3 +32,27 @@ export class PrivacyViolationError extends SenecaError {
     super(message, "PRIVACY_VIOLATION", 403);
   }
 }
+
+export class ConflictError extends SenecaError {
+  constructor(message = "conflict") {
+    super(message, "BRIDGE_EXISTS", 409);
+  }
+}
+
+export class RateLimitedError extends SenecaError {
+  constructor(message = "rate limit exceeded") {
+    super(message, "RATE_LIMITED", 429);
+  }
+}
+
+export class TokenExpiredError extends SenecaError {
+  constructor() {
+    super("Link token has expired", "TOKEN_EXPIRED", 401);
+  }
+}
+
+export class TokenSpentError extends SenecaError {
+  constructor() {
+    super("Link token has already been used", "TOKEN_SPENT", 401);
+  }
+}

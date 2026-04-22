@@ -1,19 +1,14 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-
-let cached: SupabaseClient | null = null;
-
 /**
- * Server-side Supabase client using the service key. Never exposed to limbs.
+ * Direct Supabase access is intentionally not used by the SDK in v0.x.
+ * All data operations route through the Seneca gateway function.
+ * This module is reserved for future server-to-server use cases.
  */
-export function getSupabase(): SupabaseClient {
-  if (cached) return cached;
-  const url = process.env["SUPABASE_URL"];
-  const key = process.env["SUPABASE_SERVICE_KEY"];
-  if (!url || !key) {
-    throw new Error("supabase: SUPABASE_URL and SUPABASE_SERVICE_KEY required");
-  }
-  cached = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  return cached;
+
+export type SupabaseStub = Record<string, never>;
+
+export function getSupabase(): never {
+  throw new Error(
+    "Direct Supabase access is not supported in @seneca/sdk v0.x. " +
+    "All operations route through the gateway.",
+  );
 }

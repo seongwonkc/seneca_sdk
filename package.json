@@ -23,7 +23,11 @@
       "import": "./dist/insights/index.js"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
@@ -47,10 +51,17 @@
     "@typescript-eslint/parser": "^7.13.0",
     "eslint": "^8.57.0",
     "prettier": "^3.3.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.5.2",
-    "vitest": "^1.6.0"
+    "vitest": "^4.1.5"
   },
-  "keywords": ["seneca", "ai", "education", "learning", "personalization"],
+  "keywords": [
+    "seneca",
+    "ai",
+    "education",
+    "learning",
+    "personalization"
+  ],
   "author": "Seneca (Kevin Choi)",
   "license": "UNLICENSED",
   "private": true
