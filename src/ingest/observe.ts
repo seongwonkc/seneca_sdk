@@ -30,8 +30,8 @@ export async function observe(params: ObserveParams): Promise<ObserveResult> {
   for (let i = 0; i < observations.length; i++) {
     const obs = observations[i];
     if (!obs) throw new ValidationError("observations[" + i + "] is undefined");
-    if (typeof obs.confidence !== "number" || obs.confidence < 0 || obs.confidence > 1) {
-      throw new ValidationError("observations[" + i + "].confidence must be a number between 0 and 1");
+    if (!Number.isFinite(obs.confidence) || obs.confidence < 0 || obs.confidence > 1) {
+      throw new ValidationError("observations[" + i + "].confidence must be a finite number between 0 and 1");
     }
     const hasText = typeof obs.observation === "string" && obs.observation.trim().length > 0;
     if (!hasText) {
