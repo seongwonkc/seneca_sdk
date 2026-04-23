@@ -60,6 +60,26 @@ describe("observe", () => {
     ).rejects.toThrow(ValidationError);
   });
 
+  it("throws ValidationError when confidence is NaN", async () => {
+    await expect(
+      observe({
+        limbUserId: "limb-1",
+        observations: [{ ...validObs, confidence: NaN }],
+      }),
+    ).rejects.toThrow(ValidationError);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it("throws ValidationError when confidence is Infinity", async () => {
+    await expect(
+      observe({
+        limbUserId: "limb-1",
+        observations: [{ ...validObs, confidence: Infinity }],
+      }),
+    ).rejects.toThrow(ValidationError);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
   it("throws ValidationError when confidence is out of range", async () => {
     await expect(
       observe({
