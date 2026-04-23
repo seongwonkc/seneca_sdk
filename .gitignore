@@ -9,3 +9,8 @@ coverage/
 .vscode/
 .idea/
 *.swp
+
+# Debug scratch files
+body.json
+*.tmp
+
