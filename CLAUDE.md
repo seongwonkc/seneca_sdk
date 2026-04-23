@@ -42,7 +42,11 @@ tests/
     version.test.ts
     ingest/
       linkUser.test.ts      — 5 tests (success, validation, token errors, conflict)
-      observe.test.ts       — 6 tests (success, validation, no bridge)
+      observe.test.ts       — 8 tests (success, validation, NaN/Infinity confidence, no bridge)
+      sessionSignal.test.ts — 6 tests (success, validation, not-found, rate-limited)
+    query/
+      getUserModel.test.ts  — 5 tests (success, null directive, validation, not-found, rate-limited)
+      baselineDirective.test.ts — 5 tests (fingerprint determinism, ordering sensitivity)
 ```
 
 ---
@@ -84,12 +88,26 @@ The gateway and all Supabase schemas live in `seneca_ai` (sibling directory at `
 
 ---
 
+## Working agreement with Cowork
+
+**Cowork (Claude) does:** edit/create/delete files, run tests and typecheck, apply Supabase migrations via MCP.
+
+**Kevin does:** all git operations — `git add`, `git commit`, `git push`, conflict resolution.
+
+Cowork never runs git commands. After finishing a task, Cowork reports:
+1. Files created/modified/deleted, grouped by repo
+2. One-sentence summary per file change
+3. Suggested commit message(s) in Conventional Commits format, split into logical commits if needed
+4. Verification output (test results, typecheck)
+
+If a file cannot be edited due to sandbox filesystem issues, Cowork says so explicitly.
+
+---
+
 ## What is NOT done in v0.1
 
-- `sessionSignal` — stub, returns NOT_IMPLEMENTED
-- `getUserModel` — stub
 - `exportUserData` — stub
 - `deleteUserData` — stub
 - `queryInsights` — stub, enforces minCohortSize >= 50 client-side but throws NOT_IMPLEMENTED
 
-Do not implement these until Week 2 of the implementation plan.
+Week 2 (getUserModel, sessionSignal, audit middleware, rate limiting, link redirect flow) is complete.
