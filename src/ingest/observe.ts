@@ -1,6 +1,7 @@
 import type { ObserveParams, ObserveResult } from "./types.js";
 import { gatewayPost } from "../internal/http/client.js";
 import { ValidationError } from "../types/errors.js";
+import { validateQuestionData } from "../internal/validation/validateQuestionData.js";
 
 /**
  * Write one or more behavioral observations about a linked limb user.
@@ -36,6 +37,9 @@ export async function observe(params: ObserveParams): Promise<ObserveResult> {
     const hasText = typeof obs.observation === "string" && obs.observation.trim().length > 0;
     if (!hasText) {
       throw new ValidationError("observations[" + i + "].observation is required and must be a non-empty string");
+    }
+    if (obs.questionData !== undefined) {
+      validateQuestionData(obs.questionData, i);
     }
   }
 

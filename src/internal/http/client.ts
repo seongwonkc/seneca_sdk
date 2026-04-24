@@ -6,6 +6,7 @@ import {
   RateLimitedError,
   TokenExpiredError,
   TokenSpentError,
+  IdentityMismatchError,
   SenecaError,
 } from "../../types/errors.js";
 
@@ -29,9 +30,10 @@ function throwForErrorCode(code: string, message: string, statusCode: number): n
     case "TOKEN_EXPIRED": throw new TokenExpiredError();
     case "TOKEN_SPENT":   throw new TokenSpentError();
     case "NOT_FOUND":     throw new NotFoundError(message);
-    case "BRIDGE_EXISTS": throw new ConflictError(message);
-    case "VALIDATION":    throw new ValidationError(message);
-    case "RATE_LIMITED":  throw new RateLimitedError(message);
+    case "BRIDGE_EXISTS":       throw new ConflictError(message);
+    case "IDENTITY_MISMATCH":   throw new IdentityMismatchError(message);
+    case "VALIDATION":          throw new ValidationError(message);
+    case "RATE_LIMITED":        throw new RateLimitedError(message);
     default:              throw new SenecaError(message, code, statusCode);
   }
 }

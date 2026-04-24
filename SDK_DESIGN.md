@@ -210,7 +210,7 @@ Writes behavioral observations about a user. Fire-and-forget from the limb's per
       timeSpentSeconds: number;
       wasFlagged: boolean;
       numberOfChanges: number;
-      positionInSession: number;
+      positionInSession: number;      // integer 1-200 inclusive; SDK-validated client-side
       skippedFirstTime: boolean;
     };
   }>;
@@ -492,6 +492,7 @@ Error codes (stable across versions within a major spec version):
 | `TOKEN_SPENT` | 401 | Token was already used |
 | `NOT_FOUND` | 404 | User or bridge not found |
 | `BRIDGE_EXISTS` | 409 | Bridge conflict on link |
+| `IDENTITY_MISMATCH` | 403 | User identity does not match the linked bridge |
 | `VALIDATION` | 400 | Request body invalid |
 | `RATE_LIMITED` | 429 | Rate limit exceeded |
 | `PRIVACY_VIOLATION` | 403 | Attempted access outside user scope |
@@ -506,9 +507,12 @@ try {
 } catch (e) {
   if (e instanceof RateLimitedError) { /* back off */ }
   else if (e instanceof NotFoundError) { /* user not linked */ }
+  else if (e instanceof IdentityMismatchError) { /* seneca identity mismatch — re-link required */ }
   else throw e;
 }
 ```
+
+Error classes: `UnauthorizedError`, `TokenExpiredError`, `TokenSpentError`, `NotFoundError`, `ConflictError` (`BRIDGE_EXISTS`), `IdentityMismatchError`, `ValidationError`, `RateLimitedError`, `PrivacyViolationError`. All extend `SenecaError` with `.code` and `.statusCode` fields.
 
 ---
 
@@ -823,5 +827,34 @@ This spec does NOT replace the following in v0.1. These continue to work unchang
 When v0.2 absorbs these, their behavioral writes go through `ingest.observe` and their reads go through `query.getUserModel`. The SDK becomes the single write path for Seneca's behavioral data, period.
 
 ---
+
+---
+
+## Build and consume (private package)
+
+`@seneca/sdk` is a private package installed via git URL, not the npm registry.
+
+**Dual ESM/CJS build:**
+
+The package ships both ESM (`dist/esm/`) and CommonJS (`dist/cjs/`) output. Consumers that are CJS Netlify functions (Node `require()`) use the CJS target; ESM consumers use the ESM target. The `exports` field in `package.json` maps both via `import` / `require` conditions.
+
+The CJS `dist/cjs/` directory contains a nested `package.json` with `{"type":"commonjs"}` to override the root `"type":"module"`. This is required because the repo root declares ESM-first, but CJS `.js` files must be treated as CommonJS by Node.
+
+**Build commands:**
+```bash
+npm run build          # builds both targets
+npm run build:esm      # tsc -p tsconfig.esm.json → dist/esm/
+npm run build:cjs      # tsc -p tsconfig.cjs.json → dist/cjs/ + writes nested package.json
+```
+
+**dist/ is committed to git.** This is intentional and deliberate. Private git-URL dependencies do not go through `npm publish` — the consumer installs directly from the git tree at a specific SHA, so `dist/` must be present at checkout time. Anti-pattern for public packages; correct for private git-URL installs.
+
+**Installing as a consumer:**
+```
+"@seneca/sdk": "git+ssh://git@github.com/<org>/seneca_sdk.git#<sha>"
+```
+Pin to a SHA, not a branch, for reproducible installs. After updating the SDK, run `npm install` in the consumer repo to pull the new SHA.
+
+**Netlify SSH access:** The Netlify build environment must have a deploy key with read access to the `seneca_sdk` private repo. Configure this in Netlify site settings → Deploy keys before attempting a build that consumes `@seneca/sdk` via git+ssh.
 
 *End of SDK_DESIGN.md v0.1.*

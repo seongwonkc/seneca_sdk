@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { observe } from "../../../src/ingest/observe.js";
-import { ValidationError, NotFoundError } from "../../../src/types/errors.js";
+import { ValidationError, NotFoundError, IdentityMismatchError } from "../../../src/types/errors.js";
+import { validateQuestionData } from "../../../src/internal/validation/validateQuestionData.js";
+import type { QuestionData } from "../../../src/ingest/types.js";
 
 vi.mock("../../../src/internal/http/client.js", () => ({
   gatewayPost: vi.fn(),
@@ -24,6 +26,16 @@ const validObs = {
   observation: "Student answered a question correctly.",
   category: "behavioral" as const,
   confidence: 0.5,
+};
+
+const validQuestionData: QuestionData = {
+  questionId: "q-abc-123",
+  isCorrect: true,
+  timeSpentSeconds: 42,
+  wasFlagged: false,
+  numberOfChanges: 2,
+  positionInSession: 5,
+  skippedFirstTime: false,
 };
 
 describe("observe", () => {
@@ -96,5 +108,101 @@ describe("observe", () => {
     await expect(
       observe({ limbUserId: "unlinked-user", observations: [validObs] }),
     ).rejects.toThrow(NotFoundError);
+  });
+
+  // ── questionData happy path ────────────────────────────────────────────────
+
+  it("accepts a full valid questionData payload", async () => {
+    mockPost.mockResolvedValueOnce({ senecaUserId: "user-abc", memoryIds: ["mem-2"] });
+    const obsWithQD = { ...validObs, questionData: validQuestionData };
+
+    const result = await observe({ limbUserId: "limb-1", observations: [obsWithQD] });
+
+    expect(result.senecaUserId).toBe("user-abc");
+    expect(mockPost).toHaveBeenCalledWith("ingest", "observe", {
+      limbUserId: "limb-1",
+      observations: [obsWithQD],
+    });
+  });
+
+  // ── questionData missing required fields ──────────────────────────────────
+
+  it("throws ValidationError when questionData.questionId is missing", async () => {
+    expect(() =>
+      validateQuestionData({ ...validQuestionData, questionId: "" }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when questionData.isCorrect is missing", async () => {
+    expect(() =>
+      // @ts-expect-error intentionally bad input
+      validateQuestionData({ ...validQuestionData, isCorrect: undefined }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when questionData.timeSpentSeconds is missing", async () => {
+    expect(() =>
+      // @ts-expect-error intentionally bad input
+      validateQuestionData({ ...validQuestionData, timeSpentSeconds: undefined }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when questionData.wasFlagged is missing", async () => {
+    expect(() =>
+      // @ts-expect-error intentionally bad input
+      validateQuestionData({ ...validQuestionData, wasFlagged: undefined }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when questionData.numberOfChanges is missing", async () => {
+    expect(() =>
+      // @ts-expect-error intentionally bad input
+      validateQuestionData({ ...validQuestionData, numberOfChanges: undefined }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when questionData.positionInSession is missing", async () => {
+    expect(() =>
+      // @ts-expect-error intentionally bad input
+      validateQuestionData({ ...validQuestionData, positionInSession: undefined }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when questionData.skippedFirstTime is missing", async () => {
+    expect(() =>
+      // @ts-expect-error intentionally bad input
+      validateQuestionData({ ...validQuestionData, skippedFirstTime: undefined }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  // ── positionInSession range checks ────────────────────────────────────────
+
+  it("throws ValidationError when positionInSession is 0 (below range)", async () => {
+    expect(() =>
+      validateQuestionData({ ...validQuestionData, positionInSession: 0 }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when positionInSession is 201 (above range)", async () => {
+    expect(() =>
+      validateQuestionData({ ...validQuestionData, positionInSession: 201 }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  it("throws ValidationError when positionInSession is non-integer (1.5)", async () => {
+    expect(() =>
+      validateQuestionData({ ...validQuestionData, positionInSession: 1.5 }, 0),
+    ).toThrow(ValidationError);
+  });
+
+  // ── gateway IDENTITY_MISMATCH → IdentityMismatchError ─────────────────────
+
+  it("throws IdentityMismatchError when gateway returns IDENTITY_MISMATCH", async () => {
+    mockPost.mockRejectedValueOnce(
+      new IdentityMismatchError("User identity does not match linked bridge"),
+    );
+    await expect(
+      observe({ limbUserId: "limb-1", observations: [validObs] }),
+    ).rejects.toThrow(IdentityMismatchError);
   });
 });

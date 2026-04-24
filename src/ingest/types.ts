@@ -12,15 +12,28 @@ export type SignalType =
   | "breakthrough"
   | "avoidance";
 
+export interface QuestionData {
+  questionId: string;
+  isCorrect: boolean;
+  timeSpentSeconds: number;
+  wasFlagged: boolean;
+  numberOfChanges: number;
+  positionInSession: number;
+  skippedFirstTime: boolean;
+}
+
+export interface ObserveObservation {
+  observation: string;
+  category: ObservationCategory;
+  confidence: number;
+  signalType?: SignalType;
+  sessionRef?: string;
+  questionData?: QuestionData;
+}
+
 export interface ObserveParams {
   limbUserId: string;
-  observations: Array<{
-    observation: string;
-    category: ObservationCategory;
-    confidence: number;
-    signalType?: SignalType;
-    sessionRef?: string;
-  }>;
+  observations: ObserveObservation[];
 }
 
 export interface ObserveResult {
@@ -40,6 +53,12 @@ export interface SessionSignalParams {
     performanceDelta: number;
     anxietySignal?: number;
     context: string;
+    totalQuestionsAttempted?: number;
+    totalCorrect?: number;
+    sectionsCompleted?: string[];
+    completedFullSession?: boolean;
+    firstQuartileAvgSeconds?: number;
+    lastQuartileAvgSeconds?: number;
   };
 }
 

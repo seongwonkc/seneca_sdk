@@ -1,0 +1,1 @@
+{"version":3,"file":"queryInsights.js","sourceRoot":"","sources":["../../../src/insights/queryInsights.ts"],"names":[],"mappings":";;AAMA,sCAKC;AATD;;;GAGG;AACI,KAAK,UAAU,aAAa,CAAC,MAAqB;IACvD,IAAI,MAAM,CAAC,aAAa,GAAG,EAAE,EAAE,CAAC;QAC9B,MAAM,IAAI,KAAK,CAAC,4CAA4C,CAAC,CAAC;IAChE,CAAC;IACD,MAAM,IAAI,KAAK,CAAC,gCAAgC,CAAC,CAAC;AACpD,CAAC"}

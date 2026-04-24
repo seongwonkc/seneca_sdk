@@ -19,14 +19,14 @@ beforeEach(() => {
 afterEach(() => { vi.clearAllMocks(); });
 
 const validSession = {
-  sessionRef:                "session-abc-123",
-  startedAt:                 "2026-04-23T10:00:00Z",
-  endedAt:                   "2026-04-23T10:45:00Z",
-  durationMinutes:           45,
-  engagementScore:           0.72,
-  topics:                    ["algebra", "linear equations"],
-  performanceDelta:          0.12,
-  context:                   "SAT practice test",
+  sessionRef:       "session-abc-123",
+  startedAt:        "2026-04-23T10:00:00Z",
+  endedAt:          "2026-04-23T10:45:00Z",
+  durationMinutes:  45,
+  engagementScore:  0.72,
+  topics:           ["algebra", "linear equations"],
+  performanceDelta: 0.12,
+  context:          "SAT practice test",
 };
 
 describe("sessionSignal", () => {
@@ -77,5 +77,56 @@ describe("sessionSignal", () => {
     await expect(
       sessionSignal({ limbUserId: "limb-1", session: validSession }),
     ).rejects.toThrow(RateLimitedError);
+  });
+
+  // ── new SessionSignalData fields ──────────────────────────────────────────
+
+  it("accepts session with sectionsCompleted as string array", async () => {
+    mockPost.mockResolvedValueOnce({ senecaUserId: "user-1", sessionId: "sess-1" });
+    const session = { ...validSession, sectionsCompleted: ["rw1", "math"] };
+
+    await expect(
+      sessionSignal({ limbUserId: "limb-1", session }),
+    ).resolves.toBeDefined();
+
+    expect(mockPost).toHaveBeenCalledWith("ingest", "sessionSignal", {
+      limbUserId: "limb-1",
+      session,
+    });
+  });
+
+  it("accepts session with all new optional fields present", async () => {
+    mockPost.mockResolvedValueOnce({ senecaUserId: "user-1", sessionId: "sess-1" });
+    const session = {
+      ...validSession,
+      totalQuestionsAttempted: 44,
+      totalCorrect: 38,
+      sectionsCompleted: ["rw1", "rw2", "math"],
+      completedFullSession: true,
+      firstQuartileAvgSeconds: 62,
+      lastQuartileAvgSeconds: 48,
+    };
+
+    await expect(
+      sessionSignal({ limbUserId: "limb-1", session }),
+    ).resolves.toBeDefined();
+
+    expect(mockPost).toHaveBeenCalledWith("ingest", "sessionSignal", {
+      limbUserId: "limb-1",
+      session,
+    });
+  });
+
+  it("accepts session with none of the new optional fields (backward compat)", async () => {
+    mockPost.mockResolvedValueOnce({ senecaUserId: "user-1", sessionId: "sess-1" });
+
+    await expect(
+      sessionSignal({ limbUserId: "limb-1", session: validSession }),
+    ).resolves.toBeDefined();
+
+    expect(mockPost).toHaveBeenCalledWith("ingest", "sessionSignal", {
+      limbUserId: "limb-1",
+      session: validSession,
+    });
   });
 });

@@ -56,3 +56,9 @@ export class TokenSpentError extends SenecaError {
     super("Link token has already been used", "TOKEN_SPENT", 401);
   }
 }
+
+export class IdentityMismatchError extends SenecaError {
+  constructor(message: string) {
+    super(message, "IDENTITY_MISMATCH", 403);
+  }
+}
