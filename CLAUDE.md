@@ -88,6 +88,14 @@ The gateway and all Supabase schemas live in `seneca_ai` (sibling directory at `
 
 ---
 
+## Verifying AI tool findings
+
+Before acting on any "this file is broken" finding from any AI tool, verify on Kevin's actual disk via VS Code open-and-scroll.
+
+Working-tree freshness check. Before editing any file that has been touched in the prior 7 days of git history, run `wc -l <file>` and `tail -5 <file>` and compare against what `git show HEAD:<file>` returns. If they differ, stop and report — do not edit. A mount staleness bug caused an incident in April 2026 where Cowork read old blob versions as if they were current, and edits based on those reads would have overwritten completed work.
+
+---
+
 ## Working agreement with Cowork
 
 **Cowork (Claude) does:** edit/create/delete files, run tests and typecheck, apply Supabase migrations via MCP.
